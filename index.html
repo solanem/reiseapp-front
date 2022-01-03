@@ -76,7 +76,7 @@
         let password = pwd.value;
         login(email, password).then(wasSuccessfulLogin => {
           if (wasSuccessfulLogin) {
-            window.location.href("https://happy-brahmagupta-cdfea2.netlify.app/map.html");
+            window.location.href = "/map.html";
           }
           printFehler();
         });
