@@ -28,44 +28,59 @@
     </main>
     <footer>copyright bla und keks</footer>
     <script>
-     const user = {
-       username: 'huehne@htw-berlin.de',
-       password: 'hunter2'
-     };
+     const BASE_URL = "https://nodereiseapp.herokuapp.com";
 
-     const button = document.querySelector("button");
-     const name = document.getElementById("username");
-     const pwd = document.getElementById("pwd");
+      const button = document.querySelector("button");
+      const name = document.getElementById("username");
+      const pwd = document.getElementById("pwd");
 
-     const auth = (name, pwd) => {
-       if (name === user.username && pwd === user.password)
-         document.location.href = "map.html";
-       else {
-         printFehler();
-       }
-     }
+      const login = async (email, password) => {
+        const loginUrl = `${BASE_URL}/login`;
 
-     const printFehler = () => {
-       const main = document.querySelector("main");
-       const fehlerText = document.createElement("p");
-       fehlerText.innerText = "Name oder Passwort falsch!";
-       main.appendChild(fehlerText);
-     }
-     
-     //prevents duplicate error messages
-     const removeFehler = () => {
-       if (document.querySelector("p") != null && document.querySelector("p") != undefined) {
-       const p = document.querySelector("p");
-       p.remove();
-       }
-     }
-     
-     button.addEventListener('click', event => {
-     	 removeFehler();
-       const a = name.value;
-       const b = pwd.value;
-       auth(a, b);     
-     })
+        const response = await fetch(loginUrl, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email,
+            password
+          })
+        });
+        return response.status === 200;
+      }
+
+      const printFehler = () => {
+        const main = document.querySelector("main");
+        const fehlerText = document.createElement("p");
+        fehlerText.innerText = "Name oder Passwort falsch!";
+        main.appendChild(fehlerText);
+        console.log(2);
+      }
+
+      //prevents duplicate error messages
+      const removeFehler = () => {
+        if (document.querySelector("p") != null && document.querySelector("p") != undefined) {
+          const p = document.querySelector("p");
+          p.remove();
+          console.log(1);
+        }
+      }
+
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        removeFehler();
+        let email = name.value;
+        let password = pwd.value;
+        login(email, password).then(wasSuccessfulLogin => {
+          if (wasSuccessfulLogin) {
+            window.location.href("https://happy-brahmagupta-cdfea2.netlify.app/map.html");
+          }
+          printFehler();
+        });
+      });
       
     </script>
   </body>
