@@ -31,9 +31,11 @@
     </main>
     <footer>copyright bla und keks</footer>
     <script>
-      document.querySelector("button").addEventListener('click', (event) => {
-        window.location.replace('https://wizardly-poincare-1df917.netlify.app');
-      });
+      const nav = document.querySelector("nav");
+      const btn = nav.querySelector("button");
+      btn.addEventListener('click', (event) => {
+        window.location.replace('/');
+      })
     </script>
     <script>
       var map = L.map('map').setView([52.5, 13.5], 4);
