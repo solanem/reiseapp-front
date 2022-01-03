@@ -54,140 +54,210 @@
 
     </script>
     <script>
+      const BASE_URL = "https://nodereiseapp.herokuapp.com";
       const main = document.querySelector("main");
       const creator = main.querySelector("button");
-      const frame = document.querySelector("iframe");
-      
-      window.addEventListener('DOMContentLoaded', (event) => {
-        for (i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          const value = localStorage.getItem(key);
-          displayReise(JSON.parse(value));
-        }
+      const frame = document.querySelector("select");
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  getJourneys().then(success => {
+    if (success)
+      console.log(success);
+    else
+      console.log("No journeys here!");
+  });
+});
+
+const getJourneys = async () => {
+  const response = await fetch(`${BASE_URL}/journeys`);
+  const json = await response.json();
+  return json;
+}
+
+// from https://stackoverflow.com/posts/6178341/revisions
+function checkDate(date) {
+
+  if (!/^\d{4}\-\d{2}\-\d{2}$/.test(date))
+    return false;
+
+  var parts = date.split("-");
+  var day = parseInt(parts[2], 10);
+  var month = parseInt(parts[1], 10);
+  var year = parseInt(parts[0], 10);
+
+  // Check the ranges of month and year
+  if (year < 1000 || year > 3000 || month == 0 || month > 12)
+    return false;
+
+  var monthLength = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  // Adjust for leap years
+  if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+    monthLength[1] = 29;
+
+  // Check the range of the day
+  return day > 0 && day <= monthLength[month - 1];
+}
+
+function compareDate(date1, date2) {
+  if (checkDate(date1) && checkDate(date2)) {
+    var parts1 = date1.split("-");
+    var parts2 = date2.split("-");
+    var year1 = parseInt(parts1[0], 10);
+    var year2 = parseInt(parts2[0], 10);
+    if (year1 > year2) return false;
+    if (year1 < year2) return true;
+    var month1 = parseInt(parts1[1], 10);
+    var month2 = parseInt(parts2[1], 10);
+    if (month1 > month2) return false;
+    if (month1 < month2) return true;
+    var day1 = parseInt(parts1[2], 10);
+    var day2 = parseInt(parts2[2], 10);
+    if (day1 > day2) return false;
+    return true;
+  }
+}
+
+function Reise(name, land, start, end, id) {
+  this.name = name;
+  this.land = land;
+  this.start = start;
+  this.end = end;
+  this.id = id;
+}
+
+function store(r) {
+  if (r.name !== "" && compareDate(r.start, r.end) && r.land !== "") {
+    addJourney(r.id, r.name, r.land, r.start, r.end).then(
+      success => {
+        if (success)
+          console.log("Journey saved!");
+        else
+          console.log("Your journey couldn't be saved");
       });
+  }
+}
 
-      // from https://stackoverflow.com/posts/6178341/revisions
-      function checkDate(date) {
+const addJourney = async (id, name, country, startDate, endDate) => {
+  const storer = `${BASE_URL}/journey`;
 
-        if (!/^\d{4}\-\d{2}\-\d{2}$/.test(date))
-          return false;
+  const response = await fetch(storer, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id,
+      name,
+      country,
+      startDate,
+      endDate
+    })
+  });
+  return response.status === 200;
+}
 
-        var parts = date.split("-");
-        var day = parseInt(parts[2], 10);
-        var month = parseInt(parts[1], 10);
-        var year = parseInt(parts[0], 10);
+function remover(r) {
+  deleteJourney(r.id).then(
+    success => {
+      if (success)
+        console.log("Journey deleted!");
+      else
+        console.log("Your journey couldn't be deleted");
+    });
+}
 
-        // Check the ranges of month and year
-        if (year < 1000 || year > 3000 || month == 0 || month > 12)
-          return false;
+const deleteJourney = async (id) => {
+  const storer = `${BASE_URL}/journey`;
 
-        var monthLength = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const response = await fetch(storer, {
+    method: 'DELETE',
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id,
+      name,
+      country,
+      startDate,
+      endDate
+    })
+  });
+}
 
-        // Adjust for leap years
-        if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
-          monthLength[1] = 29;
+function editor(r) {
+  editJourney(r.id).then(
+    success => {
+      if (success)
+        console.log("Journey edited!");
+      else
+        console.log("Your journey couldn't be edited");
+    });
+}
 
-        // Check the range of the day
-        return day > 0 && day <= monthLength[month - 1];
-      }
+const editJourney = async (id) => {
+  const storer = `${BASE_URL}/journey`;
 
-      function compareDate(date1, date2) {
-        if (checkDate(date1) && checkDate(date2)) {
-          var parts1 = date1.split("-");
-          var parts2 = date2.split("-");
-          var year1 = parseInt(parts1[0], 10);
-          var year2 = parseInt(parts2[0], 10);
-          if (year1 > year2) return false;
-          if (year1 < year2) return true;
-          var month1 = parseInt(parts1[1], 10);
-          var month2 = parseInt(parts2[1], 10);
-          if (month1 > month2) return false;
-          if (month1 < month2) return true;
-          var day1 = parseInt(parts1[2], 10);
-          var day2 = parseInt(parts2[2], 10);
-          if (day1 > day2) return false;
-          return true;
-        }
-      }
-        
-      function Reise(name, land, start, end, id) {
-        this.name = name;
-        this.land = land;
-        this.start = start;
-        this.end = end;
-        this.id = id;
-      }
+  const response = await fetch(storer, {
+    method: 'PUT',
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id,
+      name,
+      country,
+      startDate,
+      endDate
+    })
+  });
+}
 
-      function store(r) {
-        key = Math.random().toString(36).substr(2, 5)
-        localStorage.setItem(key, JSON.stringify(r));
-        return localStorage.getItem(key);
-      }
-      
-      function remover(r) {
-        for (var i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          const value = localStorage.getItem(key);
-          const storedIds = JSON.parse(value).id;
-          if (storedIds == r.id) {
-            localStorage.removeItem(key);
-          }
-        }
-      }
-      
-      function editor(r) {
-        creator.innerHTML = "Edit Journey";
-        for (var i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          const value = localStorage.getItem(key);
-          const storedIds = JSON.parse(value).id;
-          if (storedIds == r.id) {
-            main.querySelector("#reiseName").value = r.name;
-            frame.contentWindow.document.querySelector("select").value = r.land;
-            main.querySelector("#startDatum").value = r.start;
-            main.querySelector("#endDatum").value = r.end;
-            remover(r);
-          }
-        }
-      }
-      
-      function displayReise(r) {
-        if (r.name !== "" && compareDate(r.start, r.end) && r.land !== "") {
-          var jHouse = document.createElement("div");
-          jHouse.className = "journey";
-          jHouse.style.border = "thin solid";
-          var jData = document.createElement("p");
-          var editButton = document.createElement("button");
-          editButton.innerHTML = "edit journey";
-          editButton.onclick = function() {
-            editor(r);
-          }
-          var deleteButton = document.createElement("button");
-          deleteButton.innerHTML = "delete";
-          deleteButton.onclick = function() {
-            remover(r);
-            window.location.reload();
-          }
-          jData.innerText = r.name + ' \n nach: ' + r.land + ' \n von: ' + r.start + ' \n bis: ' + r.end + '.';
-          jHouse.append(jData);
-          jHouse.append(editButton);
-          jHouse.append(deleteButton);
-          main.append(jHouse);
-        }
-      }
+function displayReise(r) {
 
-      creator.addEventListener('click', (event) => {
-          var name = main.querySelector("#reiseName").value;
-          var country = frame.contentWindow.document.querySelector("select").value;
-          var start = main.querySelector("#startDatum").value;
-          var end = main.querySelector("#endDatum").value;
-          var id = Math.floor(Math.random() * 500);
-          
-          const trip = new Reise(name, country, start, end, id);
-          const savedTrip = store(trip);
-          displayReise(JSON.parse(savedTrip));
+  var jHouse = document.createElement("div");
+  jHouse.className = "journey";
+  jHouse.style.border = "thin solid";
+  var jData = document.createElement("p");
+  var editButton = document.createElement("button");
+  editButton.innerHTML = "edit journey";
+  editButton.onclick = function() {
+    editor(r);
+  }
+  var deleteButton = document.createElement("button");
+  deleteButton.innerHTML = "delete";
+  deleteButton.onclick = function() {
+    remover(r);
+    window.location.reload();
+  }
+  jData.innerText = r.name + ' \n nach: ' + r.land + ' \n von: ' + r.start + ' \n bis: ' + r.end + '.';
+  jHouse.append(jData);
+  jHouse.append(editButton);
+  jHouse.append(deleteButton);
+  main.append(jHouse);
+}
 
-          window.location.reload();
+creator.addEventListener('click', (event) => {
+  var name = main.querySelector("#reiseName").value;
+  var country = frame.value;
+  var start = main.querySelector("#startDatum").value;
+  var end = main.querySelector("#endDatum").value;
+  var id = Math.floor(Math.random() * 500);
+
+  const trip = new Reise(name, country, start, end, id);
+  const savedTrip = store(trip);
+  displayReise(JSON.parse(savedTrip));
+
+  window.location.reload();
+});
+
+
       });
 
     </script>
