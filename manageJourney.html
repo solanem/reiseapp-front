@@ -57,7 +57,7 @@
       const BASE_URL = "https://nodereiseapp.herokuapp.com";
       const main = document.querySelector("main");
       const creator = main.querySelector("button");
-      const frame = document.querySelector("select");
+      const frame = document.querySelector("iframe");
 
 window.addEventListener('DOMContentLoaded', (event) => {
   getJourneys().then(success => {
@@ -245,7 +245,7 @@ function displayReise(r) {
 
 creator.addEventListener('click', (event) => {
   var name = main.querySelector("#reiseName").value;
-  var country = frame.value;
+  var country = frame.contentWindow.document.querySelector("select").value;
   var start = main.querySelector("#startDatum").value;
   var end = main.querySelector("#endDatum").value;
   var id = Math.floor(Math.random() * 500);
